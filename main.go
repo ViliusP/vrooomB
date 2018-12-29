@@ -5,7 +5,7 @@ import (
 )
 
 type User struct {
-	userID int    `json:"userID"`
+	userID string `json:"userID"`
 	email  string `json:"email"`
 }
 
@@ -15,7 +15,7 @@ func main() {
 	defer db.Close()
 
 	// Execute the query
-	results, err := db.Query("SELECT userID, Email FROM users_table")
+	results, err := db.Query("SELECT user_ID, email FROM users_table")
 	if err != nil {
 		log.Fatal(err.Error()) // proper error handling instead of panic in your app
 	}
