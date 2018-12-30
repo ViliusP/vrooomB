@@ -1,4 +1,4 @@
-package databases
+package util
 
 import (
 	"database/sql"
@@ -7,7 +7,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func connect() *sql.DB {
+//Connect connects to local mysql database
+func Connect() *sql.DB {
 	db, err := sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/dev_vrooom")
 
 	if err != nil {
