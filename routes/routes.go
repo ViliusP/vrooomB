@@ -2,8 +2,6 @@ package routes
 
 import (
 	"net/http"
-
-	"../users"
 )
 
 type Route struct {
@@ -15,11 +13,9 @@ type Route struct {
 
 type Routes []Route
 
-var routes = Routes{
-	Route{
-		"Index",
-		"GET",
-		"/",
-		users.Index,
-	},
+func composeAllRoutes() Routes {
+	var allRoutes = Routes{}
+	allRoutes = append(allRoutes, userRoutes...)
+	// allRoutes = append(allRoutes, tripRoutes...)
+	return allRoutes
 }
