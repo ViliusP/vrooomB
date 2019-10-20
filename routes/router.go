@@ -9,7 +9,7 @@ import (
 
 func NewRouter() *mux.Router {
 
-	router := mux.NewRouter().StrictSlash(true)
+	router := mux.NewRouter()
 	for _, route := range composeAllRoutes() {
 		var handler http.Handler
 
@@ -20,7 +20,8 @@ func NewRouter() *mux.Router {
 			Methods(route.Method).
 			Path(route.Pattern).
 			Name(route.Name).
-			Handler(handler)
+			Handler(handler).
+			Queries(route.Queries...)
 
 	}
 
