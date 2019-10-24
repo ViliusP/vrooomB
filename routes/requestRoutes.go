@@ -27,6 +27,13 @@ var requestRoutes = Routes{
 		[]string{},
 	},
 	Route{
+		"Get all user's trip requests",
+		"GET",
+		"/trips/{id}/requests",
+		requests.GetTripRequests,
+		[]string{"limit", "{[0-9]+}", "offset", "{[0-9]+}"},
+	},
+	Route{
 		"Delete request by ID",
 		"DELETE",
 		"/requests/{id}",

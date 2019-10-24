@@ -32,9 +32,10 @@ type User struct {
 }
 
 type Request struct {
-	RequestID  int    `json:"requestID"`
-	SubmitDate string `json:"submit_date"`
-	Info       string `json:"info"`
-	Requester  *User  `json:"request_user,omitempty"`
-	Trip       *Trip  `json:"trip,omitempty"`
+	RequestID     int     `json:"requestID"`
+	SubmitDate    string  `json:"submit_date"`
+	Info          string  `json:"info"`
+	Requester     *User   `json:"request_user,omitempty"`
+	Trip          *Trip   `json:"trip,omitempty"`
+	RequestStatus *Status `json:"status"`
 }
