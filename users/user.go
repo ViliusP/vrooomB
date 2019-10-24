@@ -1,9 +1,8 @@
 package users
 
 type User struct {
-	UserID string `json:"userID"`
-	Email  string `json:"email"`
-	//Password string `json:"password"`
+	UserID           string `json:"userID"`
+	Email            string `json:"email"`
 	FName            string `json:"first_name"`
 	LName            string `json:"last_name"`
 	Phone            string `json:"phone_number"`

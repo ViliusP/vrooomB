@@ -17,6 +17,7 @@ type Routes []Route
 func composeAllRoutes() Routes {
 	var allRoutes = Routes{}
 	allRoutes = append(allRoutes, userRoutes...)
-	// allRoutes = append(allRoutes, tripRoutes...)
+	allRoutes = append(allRoutes, tripRoutes...)
+	allRoutes = append(allRoutes, requestRoutes...)
 	return allRoutes
 }
