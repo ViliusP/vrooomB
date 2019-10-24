@@ -80,7 +80,12 @@ func GetTrips(w http.ResponseWriter, r *http.Request) {
 
 func GetUserTrips(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	id := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if id < 0 || err != nil {
+		fmt.Printf("Error: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	var trips []Trip
 
 	query := `
@@ -133,7 +138,12 @@ func GetUserTrips(w http.ResponseWriter, r *http.Request) {
 
 func UpdateTripByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	id := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if id < 0 || err != nil {
+		fmt.Printf("Error: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	decoder := json.NewDecoder(r.Body)
 	var trip Trip
 	if err := decoder.Decode(&trip); err != nil {
@@ -162,7 +172,12 @@ func UpdateTripByID(w http.ResponseWriter, r *http.Request) {
 
 func DeleteTripByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	id := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if id < 0 || err != nil {
+		fmt.Printf("Error: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	query := `DELETE FROM trips WHERE trips.id_TRIP=?`
 	results, err := util.DB.Exec(query, id)
 	if err != nil {

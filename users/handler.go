@@ -15,14 +15,13 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var users []User
-	count, _ := strconv.Atoi(r.FormValue("limit"))
-	start, _ := strconv.Atoi(r.FormValue("offset"))
-
+	count, err1 := strconv.Atoi(r.FormValue("limit"))
+	start, err2 := strconv.Atoi(r.FormValue("offset"))
 	if count == 0 && start == 0 {
 		count = 10
 		start = 0
 	}
-	if count <= 0 || start < 0 {
+	if count <= 0 || start < 0 || err1 != nil || err2 != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -58,8 +57,13 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 func GetUserByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-
-	result, err := util.DB.Query("SELECT `id_PERSON`,`first_name`,`last_name`,`phone_number`,`email`,`registration_date`,`photo_URL` FROM `people` WHERE people.id_PERSON = ? AND people.isDeleted = 0", params["id"])
+	id, err := strconv.Atoi(params["id"])
+	if id < 0 || err != nil {
+		fmt.Printf("Error: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	result, err := util.DB.Query("SELECT `id_PERSON`,`first_name`,`last_name`,`phone_number`,`email`,`registration_date`,`photo_URL` FROM `people` WHERE people.id_PERSON = ? AND people.isDeleted = 0", id)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -88,6 +92,12 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 func UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
+	id, err := strconv.Atoi(params["id"])
+	if id < 0 || err != nil {
+		fmt.Printf("Error: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	decoder := json.NewDecoder(r.Body)
 	var user User
 	if err := decoder.Decode(&user); err != nil {
@@ -99,10 +109,15 @@ func UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	_, err := util.DB.Query("UPDATE `people` SET `first_name`=?,`last_name`=?,`phone_number`=?,`photo_URL`=? WHERE `id_PERSON`=?", user.FName, user.LName, user.Phone, user.PhotoURL, params["id"])
+	results, err := util.DB.Exec("UPDATE `people` SET `first_name`=?,`last_name`=?,`phone_number`=?,`photo_URL`=? WHERE `id_PERSON`=?", user.FName, user.LName, user.Phone, user.PhotoURL, params["id"])
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	RowsAffected, _ := results.RowsAffected()
+	if RowsAffected <= 0 {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -112,10 +127,21 @@ func UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 func DeleteUserByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	_, err := util.DB.Query("UPDATE `people` SET `isDeleted`=1 WHERE people.id_PERSON=? AND people.isDeleted = 0", params["id"])
+	id, err := strconv.Atoi(params["id"])
+	if id < 0 || err != nil {
+		fmt.Printf("Error: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	results, err := util.DB.Exec("UPDATE `people` SET `isDeleted`=1 WHERE people.id_PERSON=? AND people.isDeleted = 0", params["id"])
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	RowsAffected, _ := results.RowsAffected()
+	if RowsAffected <= 0 {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
