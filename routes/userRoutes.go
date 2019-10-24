@@ -38,4 +38,11 @@ var userRoutes = Routes{
 		users.DeleteUserByID,
 		[]string{},
 	},
+	Route{
+		"Create user",
+		"POST",
+		"/users",
+		users.CreateUser,
+		[]string{},
+	},
 }
