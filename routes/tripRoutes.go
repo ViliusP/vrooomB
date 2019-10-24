@@ -38,4 +38,11 @@ var tripRoutes = Routes{
 		trips.UpdateTripByID,
 		[]string{},
 	},
+	Route{
+		"Create trip by ID",
+		"POST",
+		"/trips",
+		trips.CreateTrip,
+		[]string{},
+	},
 }

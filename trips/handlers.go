@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -172,6 +173,36 @@ func DeleteTripByID(w http.ResponseWriter, r *http.Request) {
 	RowsAffected, _ := results.RowsAffected()
 	if RowsAffected <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func CreateTrip(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	dateFormat := "2006-01-02 15:04:05" // YYYY:DD:MM HH:MM:SS
+	query := `INSERT INTO trips(create_date, departure_date, cost_per_person, space, info, fk_departure_CITY, fk_PERSONid_PERSON, fk_destination_CITY) 
+	VALUES (?,?,?,?,?,?,?,?)`
+	decoder := json.NewDecoder(r.Body)
+	var trip Trip
+	if err := decoder.Decode(&trip); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	t1, e := time.Parse(dateFormat, trip.DepartureDate)
+	fmt.Println(t1)
+	fmt.Println(t1.Sub(time.Now()))
+	if trip.Space < 0 || trip.CostPerPerson < 0 || t1.Sub(time.Now()) < 0 || e != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	_, err := util.DB.Exec(query, time.Now().Format(dateFormat),
+		trip.DepartureDate, trip.CostPerPerson, trip.Space, trip.Info,
+		trip.DepartureCity.CityID, trip.TripOwner.UserID, trip.DestinationCity.CityID)
+
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
