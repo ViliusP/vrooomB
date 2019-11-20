@@ -1,6 +1,7 @@
 package jwtauth
 
 import (
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -18,29 +19,41 @@ type Claims struct {
 }
 
 const (
-	privKeyPath = "../auth_keys/app.rsa"
-	pubKeyPath  = "../auth_keys/app.rsa.pub"
+	privKeyPath = "auth_keys/app.rsa"
+	pubKeyPath  = "auth_keys/app.rsa.pub"
 )
 
-var VerifyKey, SignKey []byte
+var (
+	verifyKey *rsa.PublicKey
+	signKey   *rsa.PrivateKey
+)
 
 func init() {
 	var err error
 
-	SignKey, err = ioutil.ReadFile(privKeyPath)
+	SignKeyByte, err := ioutil.ReadFile(privKeyPath)
 	if err != nil {
 		log.Fatal("Error reading private key")
 		return
 	}
-
-	VerifyKey, err = ioutil.ReadFile(pubKeyPath)
+	signKey, err = jwt.ParseRSAPrivateKeyFromPEM(SignKeyByte)
+	if err != nil {
+		log.Fatalf("[initKeys]: %s\n", err)
+	}
+	VerifyKeyByte, err := ioutil.ReadFile(pubKeyPath)
 	if err != nil {
 		log.Fatal("Error reading public key")
 		return
 	}
+	verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(VerifyKeyByte)
+	if err != nil {
+		log.Fatalf("[initKeys]: %s\n", err)
+		panic(err)
+	}
 }
 
 func SignIn(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	var creds Credentials
 	// Get the JSON body and decode into credentials
 	err := json.NewDecoder(r.Body).Decode(&creds)
@@ -49,7 +62,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	q := `SELECT id_PERSON, email, password, isDeleted FROM people WHERE email = '?'`
+	q := `SELECT id_PERSON, email, password, isDeleted FROM people WHERE email = ?`
 	result, err := util.DB.Query(q, creds.Email)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
@@ -83,10 +96,9 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		id    string
 	}{user.email, user.id}
 	signer.Claims = claims
-	tokenString, err := signer.SignedString(SignKey)
+	tokenString, err := signer.SignedString(signKey)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(w, "Error while signing the token")
 		log.Printf("Error signing token: %v\n", err)
 	}
 
