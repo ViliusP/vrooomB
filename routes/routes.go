@@ -19,5 +19,6 @@ func composeAllRoutes() Routes {
 	allRoutes = append(allRoutes, userRoutes...)
 	allRoutes = append(allRoutes, tripRoutes...)
 	allRoutes = append(allRoutes, requestRoutes...)
+	allRoutes = append(allRoutes, authRoutes...)
 	return allRoutes
 }

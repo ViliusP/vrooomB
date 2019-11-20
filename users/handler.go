@@ -82,9 +82,12 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
-	} else {
-		fmt.Fprintf(w, string(userJSON))
 	}
+	if user.UserID == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	fmt.Fprintf(w, string(userJSON))
 
 }
 

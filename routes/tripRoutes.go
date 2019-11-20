@@ -4,7 +4,7 @@ import "../trips"
 
 var tripRoutes = Routes{
 	Route{
-		"Get all trips by ID (LIMIT)",
+		"Get all trips (LIMIT)",
 		"GET",
 		"/trips",
 		trips.GetTrips,

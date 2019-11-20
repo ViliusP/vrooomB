@@ -127,6 +127,10 @@ func GetUserTrips(w http.ResponseWriter, r *http.Request) {
 		trip.DestinationCity = destination
 		trips = append(trips, trip)
 	}
+	if trips == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	tripsJSON, err := json.Marshal(trips)
 	if err != nil {
 		fmt.Printf("Error: %s", err)

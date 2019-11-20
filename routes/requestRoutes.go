@@ -54,4 +54,11 @@ var requestRoutes = Routes{
 		requests.GetStatuses,
 		[]string{},
 	},
+	Route{
+		"Get requests status types",
+		"POST",
+		"/requests/",
+		requests.CreateRequest,
+		[]string{},
+	},
 }
