@@ -19,3 +19,8 @@ type Response struct {
 type Token struct {
 	Token string `json:"token"`
 }
+
+type UserInfo struct {
+	id    string
+	email string
+}

@@ -22,8 +22,10 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 		start = 0
 	}
 	if count <= 0 || start < 0 || err1 != nil || err2 != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		count = 10
+		start = 0
+		// w.WriteHeader(http.StatusBadRequest)
+		// return
 	}
 
 	result, err := util.DB.Query("SELECT `id_PERSON`,`first_name`,`last_name`,`phone_number`,`email`,`registration_date`,`photo_URL` FROM `people` WHERE people.isDeleted = 0 LIMIT ?,?", start, count)

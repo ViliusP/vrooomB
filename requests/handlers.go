@@ -99,6 +99,7 @@ func GetUserRequests(w http.ResponseWriter, r *http.Request) {
 func GetTripRequests(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
+
 	intID, err := strconv.Atoi(id)
 	if err != nil || intID < 0 {
 		w.WriteHeader(http.StatusBadRequest)
@@ -145,7 +146,9 @@ func GetTripRequests(w http.ResponseWriter, r *http.Request) {
 	}
 	var requests []Request
 	var trip Trip
+	isEmpty := true
 	for result.Next() {
+		isEmpty = false
 		var user User
 		var departure City
 		var destination City
@@ -171,6 +174,10 @@ func GetTripRequests(w http.ResponseWriter, r *http.Request) {
 		requests = append(requests, request)
 	}
 	trip.Requests = requests
+	if isEmpty {
+		fmt.Fprintf(w, "[]")
+		return
+	}
 	requestsJSON, err := json.Marshal(trip)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
@@ -183,8 +190,9 @@ func GetTripRequests(w http.ResponseWriter, r *http.Request) {
 func DeleteRequestByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
-	query := `DELETE FROM requests WHERE requests.id_REQUEST=?`
-	results, err := util.DB.Exec(query, id)
+	tripID := mux.Vars(r)["id"]
+	query := `DELETE FROM requests WHERE requests.id_REQUEST=? AND fk_TRIP = ?`
+	results, err := util.DB.Exec(query, id, tripID)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -201,8 +209,9 @@ func DeleteRequestByID(w http.ResponseWriter, r *http.Request) {
 func UpdateRequestByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
+	tripID := mux.Vars(r)["id_trip"]
 	query := `
-	UPDATE requests SET request_status=? WHERE requests.id_REQUEST=?
+	UPDATE requests SET request_status=? WHERE requests.id_REQUEST=? AND fk_TRIP = ?
 	`
 	decoder := json.NewDecoder(r.Body)
 	var request Request
@@ -211,7 +220,7 @@ func UpdateRequestByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results, err := util.DB.Exec(query, request.RequestStatus.StatusID, id)
+	results, err := util.DB.Exec(query, request.RequestStatus.StatusID, id, tripID)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -227,7 +236,7 @@ func UpdateRequestByID(w http.ResponseWriter, r *http.Request) {
 
 func CreateRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	//	id := mux.Vars(r)["id"]
+	tripID := mux.Vars(r)["id_trip"]
 	query := `
 	INSERT INTO requests(submit_date, info, request_status, fk_PERSON, fk_TRIP) VALUES (?,?,?,?,?)
 	`
@@ -238,7 +247,7 @@ func CreateRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results, err := util.DB.Exec(query, time.Now().Format("2006-01-02 15:04:05"), request.Info, request.RequestStatus.StatusID, request.Requester.UserID, request.Trip.TripID)
+	results, err := util.DB.Exec(query, time.Now().Format("2006-01-02 15:04:05"), request.Info, 3, request.Requester.UserID, tripID)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
