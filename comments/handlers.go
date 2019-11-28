@@ -18,7 +18,24 @@ func GetCommentsByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteCommentByID(w http.ResponseWriter, r *http.Request) {
-
+	w.Header().Set("Content-Type", "application/json")
+	commentatorID := parseID(r)
+	tripID := mux.Vars(r)["id_TRIP"]
+	commentID := mux.Vars(r)["id_COMMENT"]
+	query := `
+	DELETE FROM comments WHERE id_COMMENT = ? AND id_PERSON_COMMENT = ? AND fk_TRIP = ?	`
+	results, err := util.DB.Exec(query, commentID, commentatorID, tripID)
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	RowsAffected, _ := results.RowsAffected()
+	if RowsAffected <= 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func InsertComment(w http.ResponseWriter, r *http.Request) {

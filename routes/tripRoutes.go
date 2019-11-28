@@ -10,4 +10,11 @@ var commentRoutes = Routes{
 		comments.InsertComment,
 		[]string{},
 	},
+	Route{
+		"Delete comment",
+		"DELETE",
+		"/users/{id_USER}/trips/{id_TRIP}/comment/{id_COMMENT}",
+		comments.DeleteCommentByID,
+		[]string{},
+	},
 }
