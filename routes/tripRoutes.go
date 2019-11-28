@@ -1,48 +1,13 @@
 package routes
 
-import "../trips"
+import "../comments"
 
-var tripRoutes = Routes{
+var commentRoutes = Routes{
 	Route{
-		"Get all trips (LIMIT)",
-		"GET",
-		"/trips",
-		trips.GetTrips,
-		[]string{"limit", "{[0-9]+}", "offset", "{[0-9]+}"},
-	},
-	Route{
-		"Get all users",
-		"GET",
-		"/trips",
-		trips.GetTrips,
-		[]string{},
-	},
-	Route{
-		"Get all users trips",
-		"GET",
-		"/users/{id}/trips",
-		trips.GetUserTrips,
-		[]string{},
-	},
-	Route{
-		"Delete trip by ID",
-		"DELETE",
-		"/trips/{id}",
-		trips.DeleteTripByID,
-		[]string{},
-	},
-	Route{
-		"Update trip by ID",
-		"PATCH",
-		"/trips/{id}",
-		trips.UpdateTripByID,
-		[]string{},
-	},
-	Route{
-		"Create trip by ID",
+		"Create comment",
 		"POST",
-		"/trips",
-		trips.CreateTrip,
+		"/users/{id_USER}/trips/{id_TRIP}/comment",
+		comments.InsertComment,
 		[]string{},
 	},
 }

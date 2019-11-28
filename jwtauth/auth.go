@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"../util"
+	jwtmiddleware "github.com/auth0/go-jwt-middleware"
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -90,12 +91,27 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	signer := jwt.New(jwt.GetSigningMethod("RS256"))
-	claims := make(jwt.MapClaims)
-	claims["iss"] = "localhost"
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
-	claims["UserInfo"] = UserInfo{user.id, user.email}
-	signer.Claims = claims
+	// claims := CustomClaims{
+	// 	user.id,
+	// 	user.email,
+	// 	jwt.StandardClaims{
+	// 		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+	// 		Issuer:    "localhost",
+	// 	},
+	// }
+	// signer := jwt.NewWithClaims(jwt.GetSigningMethod("RS256"), claims)
+	signer := jwt.NewWithClaims(jwt.GetSigningMethod("RS256"), jwt.MapClaims{
+		"id":    user.id,
+		"email": user.email,
+		"exp":   time.Now().Add(time.Hour * 24).Unix(),
+		"iss":   "localhostas",
+	})
+
+	// claims := make(jwt.MapClaims)
+	// claims["iss"] = "localhost"
+	// claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	// claims["UserInfo"] = UserInfo{user.id, user.email}
+	// signer.Claims = claims
 	tokenString, err := signer.SignedString(signKey)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -109,20 +125,19 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// func AuthMiddleware(next http.Handler) http.Handler {
-// 	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
-// 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-// 			return verifyKey, nil
-// 		},
-// 		SigningMethod: jwt.SigningMethodRS256,
-// 		//ErrorHandler:  ErrHandler,
-// 	})
-// 	return jwtMiddleware.Handler(next)
-// }
-
 func AuthMiddleware(next http.Handler) http.Handler {
-	return Handler(next)
+	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
+		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
+			return verifyKey, nil
+		},
+		SigningMethod: jwt.SigningMethodRS256,
+	})
+	return jwtMiddleware.Handler(next)
 }
+
+// func AuthMiddleware(next http.Handler) http.Handler {
+// 	return Handler(next)
+// }
 
 func Handler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

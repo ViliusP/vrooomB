@@ -1,5 +1,7 @@
 package jwtauth
 
+import "github.com/dgrijalva/jwt-go"
+
 type Credentials struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
@@ -23,4 +25,10 @@ type Token struct {
 type UserInfo struct {
 	id    string
 	email string
+}
+
+type CustomClaims struct {
+	id    string `json:id`
+	email string `json:mail`
+	jwt.StandardClaims
 }
