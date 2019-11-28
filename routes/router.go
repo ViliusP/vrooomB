@@ -3,6 +3,8 @@ package routes
 import (
 	"net/http"
 
+	"strconv"
+
 	"../jwtauth"
 	"../util"
 	"github.com/gorilla/mux"
@@ -20,7 +22,7 @@ func NewRouter() *mux.Router {
 		}
 
 		if route.Pattern != "/signin" {
-			handler = util.Logger(jwtauth.AuthMiddleware(handler), route.Name)
+			handler = util.Logger(jwtauth.AuthMiddleware(VarsCheckMiddleware(handler)), route.Name)
 		}
 
 		router.
@@ -33,4 +35,17 @@ func NewRouter() *mux.Router {
 	}
 
 	return router
+}
+
+func VarsCheckMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		for _, v := range mux.Vars(r) {
+			if parsedV, err := strconv.Atoi(v); err != nil || parsedV < 0 {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
+
 }

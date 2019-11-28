@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 
 	"../util"
@@ -16,17 +17,6 @@ func GetTrips(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var trips []Trip
-	count, _ := strconv.Atoi(r.FormValue("limit"))
-	start, _ := strconv.Atoi(r.FormValue("offset"))
-
-	if count == 0 && start == 0 {
-		count = 10
-		start = 0
-	}
-	if count <= 0 || start < 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
 	query := `
 	SELECT trips.id_TRIP,trips.create_date,trips.departure_date,trips.cost_per_person,trips.space,trips.info,
@@ -40,9 +30,9 @@ func GetTrips(w http.ResponseWriter, r *http.Request) {
 	ON dest_city.id_CITY=fk_destination_CITY
 	INNER JOIN people 
 	ON people.id_PERSON=fk_PERSONid_PERSON
-	WHERE people.isDeleted = 0 LIMIT ?,?
+	WHERE people.isDeleted = 0 
 	`
-	result, err := util.DB.Query(query, start, count)
+	result, err := util.DB.Query(query)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -154,12 +144,12 @@ func UpdateTripByID(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	query := `UPDATE trips SET departure_date=?,cost_per_person=?,space=?,info=? WHERE trips.id_TRIP=?`
+	query := `UPDATE trips SET departure_date=?,cost_per_person=?,space=?,info=? WHERE trips.id_TRIP=? AND fk_PERSONid_PERSON = ?`
 	if trip.DepartureDate == "" || trip.CostPerPerson < 0 || trip.Space < 0 || trip.Info == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	results, err := util.DB.Exec(query, trip.DepartureDate, trip.CostPerPerson, trip.Space, trip.Info, id)
+	results, err := util.DB.Exec(query, trip.DepartureDate, trip.CostPerPerson, trip.Space, trip.Info, id, parseID(r))
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -182,8 +172,8 @@ func DeleteTripByID(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	query := `DELETE FROM trips WHERE trips.id_TRIP=?`
-	results, err := util.DB.Exec(query, id)
+	query := `DELETE FROM trips WHERE trips.id_TRIP=? AND fk_PERSONid_PERSON = ?`
+	results, err := util.DB.Exec(query, id, parseID(r))
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -217,7 +207,7 @@ func CreateTrip(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err := util.DB.Exec(query, time.Now().Format(dateFormat),
 		trip.DepartureDate, trip.CostPerPerson, trip.Space, trip.Info,
-		trip.DepartureCity.CityID, trip.TripOwner.UserID, trip.DestinationCity.CityID)
+		trip.DepartureCity.CityID, parseID(r), trip.DestinationCity.CityID)
 
 	if err != nil {
 		fmt.Printf("Error: %s", err)
@@ -225,4 +215,9 @@ func CreateTrip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func parseID(r *http.Request) string {
+	user := r.Context().Value("user")
+	return user.(*jwt.Token).Claims.(jwt.MapClaims)["id"].(string)
 }

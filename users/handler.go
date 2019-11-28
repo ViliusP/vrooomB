@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"../util"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 )
 
@@ -109,7 +110,10 @@ func UpdateUserByID(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
+	if mux.Vars(r)[params["id"]] != parseID(r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 	if user.FName == "" || user.LName == "" || user.Phone == "" || user.PhotoURL == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -138,6 +142,10 @@ func DeleteUserByID(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	if mux.Vars(r)[params["id"]] != parseID(r) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 	results, err := util.DB.Exec("UPDATE `people` SET `isDeleted`=1 WHERE people.id_PERSON=? AND people.isDeleted = 0", params["id"])
 	if err != nil {
 		fmt.Printf("Error: %s", err)
@@ -155,4 +163,9 @@ func DeleteUserByID(w http.ResponseWriter, r *http.Request) {
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotImplemented)
+}
+
+func parseID(r *http.Request) string {
+	user := r.Context().Value("user")
+	return user.(*jwt.Token).Claims.(jwt.MapClaims)["id"].(string)
 }

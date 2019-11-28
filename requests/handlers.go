@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"../util"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 )
 
@@ -59,7 +60,9 @@ func GetUserRequests(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	isEmpty := true
 	for result.Next() {
+		isEmpty = false
 		var user User
 		var trip Trip
 		var departure City
@@ -86,7 +89,10 @@ func GetUserRequests(w http.ResponseWriter, r *http.Request) {
 		request.Trip = &trip
 		requests = append(requests, request)
 	}
-
+	if isEmpty {
+		fmt.Fprintf(w, "[]")
+		return
+	}
 	requestsJSON, err := json.Marshal(requests)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
@@ -191,8 +197,8 @@ func DeleteRequestByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
 	tripID := mux.Vars(r)["id"]
-	query := `DELETE FROM requests WHERE requests.id_REQUEST=? AND fk_TRIP = ?`
-	results, err := util.DB.Exec(query, id, tripID)
+	query := `DELETE FROM requests WHERE requests.id_REQUEST=? AND fk_TRIP = ? AND fk_PERSON = ?`
+	results, err := util.DB.Exec(query, id, tripID, parseID(r))
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -211,7 +217,7 @@ func UpdateRequestByID(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	tripID := mux.Vars(r)["id_trip"]
 	query := `
-	UPDATE requests SET request_status=? WHERE requests.id_REQUEST=? AND fk_TRIP = ?
+	UPDATE requests SET request_status=? WHERE requests.id_REQUEST=? AND fk_TRIP = ? AND fk_PERSON = ?
 	`
 	decoder := json.NewDecoder(r.Body)
 	var request Request
@@ -220,7 +226,7 @@ func UpdateRequestByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results, err := util.DB.Exec(query, request.RequestStatus.StatusID, id, tripID)
+	results, err := util.DB.Exec(query, request.RequestStatus.StatusID, id, tripID, parseID(r))
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -292,4 +298,9 @@ func GetStatuses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintf(w, string(statusesJSON))
+}
+
+func parseID(r *http.Request) string {
+	user := r.Context().Value("user")
+	return user.(*jwt.Token).Claims.(jwt.MapClaims)["id"].(string)
 }
