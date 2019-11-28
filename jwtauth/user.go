@@ -28,7 +28,7 @@ type UserInfo struct {
 }
 
 type CustomClaims struct {
-	id    string `json:id`
-	email string `json:mail`
+	id    string `json:"id"`
+	email string `json:"mail"`
 	jwt.StandardClaims
 }
