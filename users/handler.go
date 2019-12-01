@@ -142,7 +142,8 @@ func DeleteUserByID(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if mux.Vars(r)[params["id"]] != parseID(r) {
+
+	if mux.Vars(r)["id"] != parseID(r) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}

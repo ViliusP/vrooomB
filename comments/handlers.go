@@ -68,7 +68,7 @@ func GetComments(w http.ResponseWriter, r *http.Request) {
 	}
 	if trip.TripID == 0 && trip.CreationDate == "" {
 		fmt.Printf("Error: %s", err)
-		w.WriteHeader(http.StatusBadGateway)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	trip.TripOwner = &user
