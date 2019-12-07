@@ -30,9 +30,9 @@ func GetTrips(w http.ResponseWriter, r *http.Request) {
 	ON dest_city.id_CITY=fk_destination_CITY
 	INNER JOIN people 
 	ON people.id_PERSON=fk_PERSONid_PERSON
-	WHERE people.isDeleted = 0 
+	WHERE people.isDeleted = 0 AND people.id_PERSON != ?
 	`
-	result, err := util.DB.Query(query)
+	result, err := util.DB.Query(query, parseID(r))
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
