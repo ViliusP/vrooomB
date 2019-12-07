@@ -72,6 +72,7 @@ func AllowCORSHeader(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PATCH")
 		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, Access-Control-Allow-Origin")
+		w.Header().Set("Access-Control-Expose-Headers", "Authorization")
 		next.ServeHTTP(w, r)
 	})
 }

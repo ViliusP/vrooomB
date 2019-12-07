@@ -5,9 +5,16 @@ import "../jwtauth"
 var authRoutes = Routes{
 	Route{
 		"Sign in",
-		"Post",
+		"POST",
 		"/signin",
 		jwtauth.SignIn,
+		[]string{},
+	},
+	Route{
+		"Check JWT",
+		"GET",
+		"/check",
+		jwtauth.CheckJWT,
 		[]string{},
 	},
 }
