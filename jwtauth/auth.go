@@ -65,7 +65,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	q := `SELECT id_PERSON, email, password, isDeleted FROM people WHERE email = ? AND password=?`
+	q := `SELECT id_PERSON, email, password, isDeleted, first_name, last_name FROM people WHERE email = ? AND password=?`
 	result, err := util.DB.Query(q, creds.Email, creds.Password)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
@@ -76,7 +76,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 	for result.Next() {
 		exists = true
-		err := result.Scan(&user.id, &user.email, &user.password, &user.isDeleted)
+		err := result.Scan(&user.id, &user.email, &user.password, &user.isDeleted, &user.first_name, &user.last_name)
 		if err != nil {
 			fmt.Printf("Error: %s", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -93,10 +93,12 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	signer := jwt.NewWithClaims(jwt.GetSigningMethod("RS256"), jwt.MapClaims{
-		"id":    user.id,
-		"email": user.email,
-		"exp":   time.Now().Add(time.Hour * 24).Unix(),
-		"iss":   "localhostas",
+		"id":         user.id,
+		"email":      user.email,
+		"first_name": user.first_name,
+		"last_name":  user.last_name,
+		"exp":        time.Now().Add(time.Hour * 24).Unix(),
+		"iss":        "localhostas",
 	})
 
 	tokenString, err := signer.SignedString(signKey)

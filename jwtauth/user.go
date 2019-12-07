@@ -8,10 +8,12 @@ type Credentials struct {
 }
 
 type User struct {
-	id        string
-	email     string
-	password  string
-	isDeleted int
+	id         string
+	email      string
+	password   string
+	first_name string
+	last_name  string
+	isDeleted  int
 }
 
 type Response struct {
