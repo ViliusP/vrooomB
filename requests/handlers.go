@@ -253,7 +253,7 @@ func CreateRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results, err := util.DB.Exec(query, time.Now().Format("2006-01-02 15:04:05"), request.Info, 3, request.Requester.UserID, tripID)
+	results, err := util.DB.Exec(query, time.Now().Format("2006-01-02 15:04:05"), request.Info, 3, parseID(r), tripID)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
