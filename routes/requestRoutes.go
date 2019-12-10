@@ -43,7 +43,7 @@ var requestRoutes = Routes{
 	Route{
 		"Update request status by ID",
 		"PATCH",
-		"trips/id_trip/request/{id}",
+		"/trips/{id_trip}/requests/{id}",
 		requests.UpdateRequestByID,
 		[]string{},
 	},

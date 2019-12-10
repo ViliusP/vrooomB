@@ -217,7 +217,7 @@ func UpdateRequestByID(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	tripID := mux.Vars(r)["id_trip"]
 	query := `
-	UPDATE requests SET request_status=? WHERE requests.id_REQUEST=? AND fk_TRIP = ? AND fk_PERSON = ?
+	UPDATE requests SET request_status=? WHERE requests.id_REQUEST=? AND fk_TRIP = ?
 	`
 	decoder := json.NewDecoder(r.Body)
 	var request Request
@@ -226,7 +226,7 @@ func UpdateRequestByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results, err := util.DB.Exec(query, request.RequestStatus.StatusID, id, tripID, parseID(r))
+	results, err := util.DB.Exec(query, request.RequestStatus.StatusID, id, tripID)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
