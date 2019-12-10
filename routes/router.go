@@ -31,8 +31,8 @@ func NewRouter() *mux.Router {
 		}
 
 		if route.Pattern != "/signin" {
-			handler = util.Logger(jwtauth.AuthMiddleware(VarsCheckMiddleware(AllowCORSHeader(handler))), route.Name)
-			fakeHandler = util.Logger(jwtauth.AuthMiddleware(VarsCheckMiddleware(AllowCORSHeader(fakeHandler))), fakeRoute.Name)
+			handler = util.Logger(AllowCORSHeader(jwtauth.AuthMiddleware(VarsCheckMiddleware(handler))), route.Name)
+			fakeHandler = util.Logger(AllowCORSHeader(jwtauth.AuthMiddleware(VarsCheckMiddleware(fakeHandler))), fakeRoute.Name)
 		}
 
 		router.
